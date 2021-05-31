@@ -3,7 +3,7 @@ package player
 import "time"
 
 type Player struct {
-	Name      string
+	Name      string `validator:"notEmpty"`
 	CreatedAt time.Time
 }
 
