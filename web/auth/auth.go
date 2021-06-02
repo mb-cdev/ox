@@ -8,6 +8,8 @@ import (
 	"sync"
 )
 
+const HTTP_HEADER_UUID string = "X-PLAYER-UUID"
+
 func init() {
 	var once sync.Once
 
@@ -30,6 +32,7 @@ func registerHttpHandlers() {
 		p := player.NewPlayer(login)
 		if ok, errVal := validator.IsModelValid(p); !ok {
 			w.WriteHeader(http.StatusBadRequest)
+
 			respError := struct {
 				Error   string
 				Success bool
@@ -37,6 +40,7 @@ func registerHttpHandlers() {
 				errVal.Error(),
 				false,
 			}
+
 			jEnc.Encode(respError)
 			return
 		}
@@ -50,9 +54,11 @@ func registerHttpHandlers() {
 
 		res := struct {
 			Uuid    string
+			Header  string
 			Success bool
 		}{
 			uuid,
+			HTTP_HEADER_UUID,
 			true,
 		}
 

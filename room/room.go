@@ -2,15 +2,17 @@ package room
 
 import (
 	"mb-cdev/ox/chat"
+	"mb-cdev/ox/player"
 
 	"github.com/google/uuid"
 )
 
 type Room struct {
-	Chat *chat.Chat
+	Chat  *chat.Chat
+	Owner *player.Player
 }
 
-func NewRoom() (string, error) {
+func NewRoom(owner *player.Player) (string, error) {
 	uid, err := uuid.NewRandom()
 
 	if err != nil {
@@ -18,11 +20,12 @@ func NewRoom() (string, error) {
 	}
 
 	r := &Room{
-		Chat: chat.NewChat(),
+		Chat:  chat.NewChat(),
+		Owner: owner,
 	}
 
 	uidS := uid.String()
-	RoomList.rooms.Store(uidS, r)
+	RoomList.Rooms.Store(uidS, r)
 
 	return uidS, nil
 }

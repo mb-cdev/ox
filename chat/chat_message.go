@@ -20,7 +20,7 @@ func (m *message) String() string {
 	sb := strings.Builder{}
 
 	sb.WriteRune('[')
-	sb.WriteString(m.createdAt.String())
+	sb.WriteString(m.createdAt.Format("2 Jan 2006 15:04:05"))
 	sb.WriteRune(']')
 	sb.WriteRune(' ')
 
