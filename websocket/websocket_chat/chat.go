@@ -1,11 +1,14 @@
 package websocket_chat
 
 import (
+	"log"
+	"mb-cdev/ox/game_protocol"
 	"mb-cdev/ox/player"
 	"mb-cdev/ox/room"
 	"mb-cdev/ox/web/auth"
 	"mb-cdev/ox/web/web_room"
 	"net/http"
+	"strings"
 )
 
 type WebsocketChatHandler struct {
@@ -36,13 +39,18 @@ func (w *WebsocketChatHandler) ServeConnection(in chan string, out chan string, 
 	defer w.connectedRoom.Chat.Unsubscribe(sub)
 
 	w.connectedRoom.Chat.SendMessage(w.connectedPlayer, "CONNECTED!")
-listeners:
 	for {
 		select {
 		case <-disconnect:
-			break listeners
-		case msg := <-in:
-			w.connectedRoom.Chat.SendMessage(w.connectedPlayer, msg)
+			log.Default().Println("Disconnecting!")
+			return
+		case cmd := <-in:
+			r := strings.NewReader(cmd)
+			tokens := game_protocol.ParseTokens(r)
+
+			for _, t := range tokens {
+				t.Execute(w.connectedPlayer, w.connectedRoom)
+			}
 		}
 	}
 

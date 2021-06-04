@@ -20,6 +20,7 @@ type errorResponse struct {
 
 type successResponse struct {
 	RoomUuid string
+	Header   string
 	Success  bool
 }
 
@@ -63,6 +64,6 @@ func handleCreateRoom(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := successResponse{Success: true, RoomUuid: rUid}
+	resp := successResponse{Success: true, RoomUuid: rUid, Header: HTTP_HEADER_ROOM_UUID}
 	jsonEnc.Encode(resp)
 }
