@@ -1,7 +1,6 @@
 package websocket_chat
 
 import (
-	"log"
 	"mb-cdev/ox/game_protocol"
 	"mb-cdev/ox/player"
 	"mb-cdev/ox/room"
@@ -12,13 +11,18 @@ import (
 )
 
 type WebsocketChatHandler struct {
-	connectedPlayer *player.Player
-	connectedRoom   *room.Room
+	connectedPlayer     *player.Player
+	connectedRoom       *room.Room
+	connectedPlayerUUID string
+	connectedRoomUUID   string
 }
 
 func (w *WebsocketChatHandler) ConfirmHandshake(ch *http.Request, sh *http.Response) bool {
-	p, err := player.Logged.GetPlayer(ch.FormValue(auth.HTTP_HEADER_UUID))
-	r, ok := room.RoomList.Rooms.Load(ch.FormValue(web_room.HTTP_HEADER_ROOM_UUID))
+	w.connectedPlayerUUID = ch.FormValue(auth.HTTP_HEADER_UUID)
+	w.connectedRoomUUID = ch.FormValue(web_room.HTTP_HEADER_ROOM_UUID)
+
+	p, err := player.Logged.GetPlayer(w.connectedPlayerUUID)
+	r, ok := room.RoomList.Rooms.Load(w.connectedRoomUUID)
 
 	if !ok || err != nil || p == nil {
 		sh.StatusCode = http.StatusInternalServerError
@@ -28,6 +32,8 @@ func (w *WebsocketChatHandler) ConfirmHandshake(ch *http.Request, sh *http.Respo
 
 	w.connectedPlayer = p
 	w.connectedRoom = r.(*room.Room)
+
+	w.connectedRoom.AppendParticipant(w.connectedPlayerUUID, p)
 
 	return true
 }
@@ -39,13 +45,14 @@ func (w *WebsocketChatHandler) ServeConnection(in chan string, out chan string, 
 
 	defer func() {
 		w.connectedRoom.Chat.Unsubscribe(sub)
+		w.connectedRoom.DeleteParticipant(w.connectedPlayerUUID)
 	}()
 
 	w.connectedRoom.Chat.SendMessage(w.connectedPlayer, "CONNECTED!")
 	for {
 		select {
 		case <-disconnect:
-			log.Default().Println("Disconnecting!")
+			w.connectedRoom.Chat.SendMessage(w.connectedPlayer, "DISCONNECTED")
 			return
 		case cmd := <-in:
 			r := strings.NewReader(cmd)
