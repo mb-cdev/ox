@@ -36,7 +36,10 @@ func (w *WebsocketChatHandler) ServeConnection(in chan string, out chan string, 
 	sub := w.connectedRoom.Chat.Subscribe(func(msg string) {
 		out <- msg
 	})
-	defer w.connectedRoom.Chat.Unsubscribe(sub)
+
+	defer func() {
+		w.connectedRoom.Chat.Unsubscribe(sub)
+	}()
 
 	w.connectedRoom.Chat.SendMessage(w.connectedPlayer, "CONNECTED!")
 	for {
