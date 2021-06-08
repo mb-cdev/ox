@@ -1,4 +1,4 @@
-package websocket_chat
+package websocket_game
 
 import (
 	"mb-cdev/ox/game_protocol"
@@ -10,14 +10,14 @@ import (
 	"strings"
 )
 
-type WebsocketChatHandler struct {
+type WebsocketGameHandler struct {
 	connectedPlayer     *player.Player
 	connectedRoom       *room.Room
 	connectedPlayerUUID string
 	connectedRoomUUID   string
 }
 
-func (w *WebsocketChatHandler) ConfirmHandshake(ch *http.Request, sh *http.Response) bool {
+func (w *WebsocketGameHandler) ConfirmHandshake(ch *http.Request, sh *http.Response) bool {
 	w.connectedPlayerUUID = ch.FormValue(auth.HTTP_HEADER_UUID)
 	w.connectedRoomUUID = ch.FormValue(web_room.HTTP_HEADER_ROOM_UUID)
 
@@ -38,13 +38,17 @@ func (w *WebsocketChatHandler) ConfirmHandshake(ch *http.Request, sh *http.Respo
 	return true
 }
 
-func (w *WebsocketChatHandler) ServeConnection(in chan string, out chan string, disconnect chan bool) {
+func (w *WebsocketGameHandler) ServeConnection(in chan string, out chan string, disconnect chan bool) {
 	sub := w.connectedRoom.Chat.Subscribe(func(msg string) {
 		out <- msg
+	})
+	subGame := w.connectedRoom.Subscribe(func(data string) {
+		out <- data
 	})
 
 	defer func() {
 		w.connectedRoom.Chat.Unsubscribe(sub)
+		w.connectedRoom.Unsubscribe(subGame)
 		w.connectedRoom.DeleteParticipant(w.connectedPlayer)
 	}()
 

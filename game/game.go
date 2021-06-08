@@ -1,10 +1,7 @@
 package game
 
 import (
-	"container/list"
-	"encoding/json"
 	"errors"
-	"log"
 	"math/rand"
 	"mb-cdev/ox/player"
 	"time"
@@ -36,8 +33,6 @@ type Game struct {
 
 	turnForPlayerIndex uint8
 	finished           bool
-
-	subscribers *list.List
 }
 
 func NewGame(player1 *player.Player, player2 *player.Player) *Game {
@@ -69,8 +64,6 @@ func NewGame(player1 *player.Player, player2 *player.Player) *Game {
 		turnForPlayerIndex: 0,
 		finished:           false,
 	}
-
-	g.subscribers.Init()
 
 	return g
 }
@@ -142,31 +135,4 @@ func (g *Game) isMovementWinning(movement boardField, x, y uint8) bool {
 	}
 
 	return wonX || wonY || wonDiagonal || wonDiagonal2
-}
-
-func (g *Game) Broadcast(response interface{}) {
-	d, err := json.Marshal(response)
-	if err != nil {
-		log.Default().Println("Error while marshalling game response", err)
-	}
-
-	for e := g.subscribers.Front(); e != nil; e = e.Next() {
-		e.Value.(GameObserver)(string(d))
-	}
-}
-
-func (g *Game) Subscribe(f GameObserver) *Subscription {
-	return &Subscription{g.subscribers.PushBack(f)}
-}
-
-func (g *Game) Unsubscribe(s *Subscription) {
-	g.subscribers.Remove(s.Element)
-}
-
-func (g *Game) SetSubscriptionList(l *list.List) {
-	g.subscribers = l
-}
-
-func (g *Game) GetSubscriptionList() *list.List {
-	return g.subscribers
 }

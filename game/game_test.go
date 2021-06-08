@@ -1,6 +1,8 @@
 package game_test
 
 import (
+	"encoding/json"
+	"fmt"
 	"mb-cdev/ox/game"
 	"mb-cdev/ox/player"
 	"testing"
@@ -163,4 +165,23 @@ func TestWinning9(t *testing.T) {
 	if won || won1 || !won2 {
 		t.Error("Winning bool not correct")
 	}
+}
+func TestBoardToRunes(t *testing.T) {
+	p1 := player.NewPlayer("p1")
+	p2 := player.NewPlayer("p2")
+
+	g := game.NewGame(&p1, &p2)
+	won, err := g.MakeMove(&p2, 2, 0)
+	won1, err1 := g.MakeMove(&p2, 1, 1)
+
+	if err != nil || err1 != nil {
+		t.Error(err, err1)
+	}
+	if won || won1 {
+		t.Error("Winning bool not correct")
+	}
+
+	s := game.NewGameStatusResponse(g)
+	b, _ := json.Marshal(s)
+	fmt.Printf("%v", string(b))
 }

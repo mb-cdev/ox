@@ -1,7 +1,10 @@
 package room
 
 import (
+	clist "container/list"
+	"encoding/json"
 	"errors"
+	"log"
 	"mb-cdev/ox/chat"
 	"mb-cdev/ox/game"
 	"mb-cdev/ox/player"
@@ -13,11 +16,12 @@ import (
 var errUserNotExists = errors.New("one of user not exists")
 
 type Room struct {
-	mu           sync.Mutex
-	Chat         *chat.Chat
-	Owner        *player.Player
-	Participants map[string]*player.Player
-	CurrentGame  *game.Game
+	mu                sync.Mutex
+	Chat              *chat.Chat
+	Owner             *player.Player
+	Participants      map[string]*player.Player
+	CurrentGame       *game.Game
+	gameSubscriptions *clist.List
 }
 
 func NewRoom(owner *player.Player) (string, error) {
@@ -71,10 +75,28 @@ func (r *Room) NewGame(player1_login, player2_login string) error {
 		return errUserNotExists
 	}
 
-	newGame := game.NewGame(p1, p2)
-	if r.CurrentGame != nil {
-		newGame.SetSubscriptionList(r.CurrentGame.GetSubscriptionList())
-	}
+	r.CurrentGame = nil
+
+	r.CurrentGame = game.NewGame(p1, p2)
 
 	return nil
+}
+
+func (r *Room) Broadcast(response interface{}) {
+	d, err := json.Marshal(response)
+	if err != nil {
+		log.Default().Println("Error while marshalling game response", err)
+	}
+
+	for e := r.gameSubscriptions.Front(); e != nil; e = e.Next() {
+		e.Value.(GameObserver)(string(d))
+	}
+}
+
+func (r *Room) Subscribe(f GameObserver) *Subscription {
+	return &Subscription{r.gameSubscriptions.PushBack(f)}
+}
+
+func (r *Room) Unsubscribe(s *Subscription) {
+	r.gameSubscriptions.Remove(s.Element)
 }

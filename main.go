@@ -3,7 +3,7 @@ package main
 import (
 	_ "mb-cdev/ox/web/auth"
 	_ "mb-cdev/ox/web/web_room"
-	"mb-cdev/ox/websocket/websocket_chat"
+	"mb-cdev/ox/websocket/websocket_game"
 	"net/http"
 
 	"canisdev.pl/websocket"
@@ -15,6 +15,6 @@ func main() {
 
 	//WebSocket
 	mux := websocket.NewWebSocketMux()
-	mux.Handle("/chat", &websocket_chat.WebsocketChatHandler{})
+	mux.Handle("/chat", &websocket_game.WebsocketGameHandler{})
 	websocket.ListenAndServe("0.0.0.0:9999", mux)
 }
