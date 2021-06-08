@@ -38,5 +38,5 @@ func (s *GameStatusResponse) GetWinner(g *Game) string {
 		return ""
 	}
 
-	return g.players[g.turnForPlayerIndex].Name
+	s.Winner = g.players[g.turnForPlayerIndex].Name
 }
