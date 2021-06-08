@@ -33,9 +33,10 @@ func (s *GameStatusResponse) GenerateBoard(g *Game) {
 	}
 }
 
-func (s *GameStatusResponse) GetWinner(g *Game) string {
+func (s *GameStatusResponse) GetWinner(g *Game) {
 	if !g.Winned {
-		return ""
+		s.Winner = ""
+		return
 	}
 
 	s.Winner = g.players[g.turnForPlayerIndex].Name
