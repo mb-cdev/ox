@@ -11,6 +11,7 @@ var errBadPlayerIndex = errors.New("bad player index")
 var errBadBoardIndex = errors.New("bad board index")
 var errGameIsFinished = errors.New("game is finished")
 var errNotPlayerTurn = errors.New("not player turn")
+var errFieldUsed = errors.New("field already used")
 
 type boardField byte
 
@@ -94,6 +95,10 @@ func (g *Game) MakeMove(pl *player.Player, x, y uint8) (bool, error) {
 
 	if x > 2 || y > 2 {
 		return false, errBadBoardIndex
+	}
+
+	if g.board[x][y] != empty {
+		return false, errFieldUsed
 	}
 
 	moveType := g.playersSymbol[pIndex]
