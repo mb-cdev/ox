@@ -2,7 +2,9 @@ package chat
 
 import (
 	"container/list"
+	"encoding/json"
 	"mb-cdev/ox/player"
+	"mb-cdev/ox/websocket_response"
 )
 
 type Chat struct {
@@ -19,8 +21,15 @@ func NewChat() *Chat {
 func (c *Chat) SendMessage(sender *player.Player, text string) {
 	msg := newMessage(sender, text)
 
+	msgStruct := struct{ Msg string }{Msg: msg.String()}
+	resp := websocket_response.Response{
+		Operation: "MESSAGE",
+		Data:      msgStruct,
+	}
+	m, _ := json.Marshal(resp)
+
 	for e := c.subscribers.Front(); e != nil; e = e.Next() {
-		e.Value.(ChatObserver)(msg.String())
+		e.Value.(ChatObserver)(string(m))
 	}
 }
 

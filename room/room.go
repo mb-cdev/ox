@@ -14,6 +14,7 @@ import (
 )
 
 var errUserNotExists = errors.New("one of user not exists")
+var errTwoSameUsers = errors.New("can not play with two same users")
 
 type Room struct {
 	mu                sync.Mutex
@@ -32,10 +33,13 @@ func NewRoom(owner *player.Player) (string, error) {
 	}
 
 	r := &Room{
-		Chat:         chat.NewChat(),
-		Owner:        owner,
-		Participants: make(map[string]*player.Player),
+		Chat:              chat.NewChat(),
+		Owner:             owner,
+		Participants:      make(map[string]*player.Player),
+		gameSubscriptions: &clist.List{},
 	}
+
+	r.gameSubscriptions.Init()
 
 	uidS := uid.String()
 	RoomList.Rooms.Store(uidS, r)
@@ -71,12 +75,15 @@ func (r *Room) NewGame(player1_login, player2_login string) error {
 		p2 = p
 	}
 
+	if p1 == p2 {
+		return errTwoSameUsers
+	}
+
 	if p1 == nil || p2 == nil {
 		return errUserNotExists
 	}
 
 	r.CurrentGame = nil
-
 	r.CurrentGame = game.NewGame(p1, p2)
 
 	return nil

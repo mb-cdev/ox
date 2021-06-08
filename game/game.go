@@ -33,6 +33,7 @@ type Game struct {
 
 	turnForPlayerIndex uint8
 	finished           bool
+	Winned             bool
 }
 
 func NewGame(player1 *player.Player, player2 *player.Player) *Game {
@@ -101,8 +102,14 @@ func (g *Game) MakeMove(pl *player.Player, x, y uint8) (bool, error) {
 	g.board[x][y] |= movement
 
 	if g.isMovementWinning(movement, x, y) {
+		g.Winned = true
 		g.finished = true
 		return true, nil
+	}
+
+	g.turnForPlayerIndex++
+	if (g.turnForPlayerIndex) > 1 {
+		g.turnForPlayerIndex = 0
 	}
 
 	return false, nil
