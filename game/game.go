@@ -1,7 +1,10 @@
 package game
 
 import (
+	"container/list"
+	"encoding/json"
 	"errors"
+	"log"
 	"math/rand"
 	"mb-cdev/ox/player"
 	"time"
@@ -9,6 +12,8 @@ import (
 
 var errBadPlayerIndex = errors.New("bad player index")
 var errBadBoardIndex = errors.New("bad board index")
+var errGameIsFinished = errors.New("game is finished")
+var errNotPlayerTurn = errors.New("not player turn")
 
 type boardField byte
 
@@ -31,6 +36,8 @@ type Game struct {
 
 	turnForPlayerIndex uint8
 	finished           bool
+
+	subscribers *list.List
 }
 
 func NewGame(player1 *player.Player, player2 *player.Player) *Game {
@@ -55,17 +62,26 @@ func NewGame(player1 *player.Player, player2 *player.Player) *Game {
 		pl[1] = player1
 	}
 
-	return &Game{
+	g := &Game{
 		board:              [3][3]boardField{},
 		players:            pl,
 		playersSymbol:      bf,
 		turnForPlayerIndex: 0,
 		finished:           false,
 	}
+
+	g.subscribers.Init()
+
+	return g
 }
 
 //returning is movement winning and error
 func (g *Game) MakeMove(pl *player.Player, x, y uint8) (bool, error) {
+
+	if g.finished {
+		return false, errGameIsFinished
+	}
+
 	pIndex := -1
 
 	for i, p := range g.players {
@@ -78,6 +94,10 @@ func (g *Game) MakeMove(pl *player.Player, x, y uint8) (bool, error) {
 		return false, errBadPlayerIndex
 	}
 
+	if g.turnForPlayerIndex != uint8(pIndex) {
+		return false, errNotPlayerTurn
+	}
+
 	if x > 2 || y > 2 {
 		return false, errBadBoardIndex
 	}
@@ -88,6 +108,7 @@ func (g *Game) MakeMove(pl *player.Player, x, y uint8) (bool, error) {
 	g.board[x][y] |= movement
 
 	if g.isMovementWinning(movement, x, y) {
+		g.finished = true
 		return true, nil
 	}
 
@@ -121,4 +142,31 @@ func (g *Game) isMovementWinning(movement boardField, x, y uint8) bool {
 	}
 
 	return wonX || wonY || wonDiagonal || wonDiagonal2
+}
+
+func (g *Game) Broadcast(response interface{}) {
+	d, err := json.Marshal(response)
+	if err != nil {
+		log.Default().Println("Error while marshalling game response", err)
+	}
+
+	for e := g.subscribers.Front(); e != nil; e = e.Next() {
+		e.Value.(GameObserver)(string(d))
+	}
+}
+
+func (g *Game) Subscribe(f GameObserver) *Subscription {
+	return &Subscription{g.subscribers.PushBack(f)}
+}
+
+func (g *Game) Unsubscribe(s *Subscription) {
+	g.subscribers.Remove(s.Element)
+}
+
+func (g *Game) SetSubscriptionList(l *list.List) {
+	g.subscribers = l
+}
+
+func (g *Game) GetSubscriptionList() *list.List {
+	return g.subscribers
 }

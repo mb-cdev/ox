@@ -33,7 +33,7 @@ func (w *WebsocketChatHandler) ConfirmHandshake(ch *http.Request, sh *http.Respo
 	w.connectedPlayer = p
 	w.connectedRoom = r.(*room.Room)
 
-	w.connectedRoom.AppendParticipant(w.connectedPlayerUUID, p)
+	w.connectedRoom.AppendParticipant(p)
 
 	return true
 }
@@ -45,7 +45,7 @@ func (w *WebsocketChatHandler) ServeConnection(in chan string, out chan string, 
 
 	defer func() {
 		w.connectedRoom.Chat.Unsubscribe(sub)
-		w.connectedRoom.DeleteParticipant(w.connectedPlayerUUID)
+		w.connectedRoom.DeleteParticipant(w.connectedPlayer)
 	}()
 
 	w.connectedRoom.Chat.SendMessage(w.connectedPlayer, "CONNECTED!")

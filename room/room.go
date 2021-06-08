@@ -1,6 +1,7 @@
 package room
 
 import (
+	"errors"
 	"mb-cdev/ox/chat"
 	"mb-cdev/ox/game"
 	"mb-cdev/ox/player"
@@ -8,6 +9,8 @@ import (
 
 	"github.com/google/uuid"
 )
+
+var errUserNotExists = errors.New("one of user not exists")
 
 type Room struct {
 	mu           sync.Mutex
@@ -36,18 +39,42 @@ func NewRoom(owner *player.Player) (string, error) {
 	return uidS, nil
 }
 
-func (r *Room) AppendParticipant(uuid string, p *player.Player) {
+func (r *Room) AppendParticipant(p *player.Player) {
 	r.mu.Lock()
-	if _, ok := r.Participants[uuid]; !ok {
-		r.Participants[uuid] = p
+	if _, ok := r.Participants[p.Name]; !ok {
+		r.Participants[p.Name] = p
 	}
 	r.mu.Unlock()
 }
 
-func (r *Room) DeleteParticipant(uuid string) {
+func (r *Room) DeleteParticipant(p *player.Player) {
 	r.mu.Lock()
-	if _, ok := r.Participants[uuid]; !ok {
-		delete(r.Participants, uuid)
+	if _, ok := r.Participants[p.Name]; !ok {
+		delete(r.Participants, p.Name)
 	}
 	r.mu.Unlock()
+}
+
+func (r *Room) NewGame(player1_login, player2_login string) error {
+
+	var p1 *player.Player
+	var p2 *player.Player
+
+	if p, ok := r.Participants[player1_login]; ok {
+		p1 = p
+	}
+	if p, ok := r.Participants[player2_login]; ok {
+		p2 = p
+	}
+
+	if p1 == nil || p2 == nil {
+		return errUserNotExists
+	}
+
+	newGame := game.NewGame(p1, p2)
+	if r.CurrentGame != nil {
+		newGame.SetSubscriptionList(r.CurrentGame.GetSubscriptionList())
+	}
+
+	return nil
 }
