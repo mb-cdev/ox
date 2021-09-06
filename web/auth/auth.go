@@ -20,7 +20,11 @@ func init() {
 
 func registerHttpHandlers() {
 	http.HandleFunc("/auth/register", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
+
+		w.Header().Add("Access-Control-Allow-Origin", "*")
+		w.Header().Add("Access-Control-Allow-Headers", "*")
+
+		if r.Method != http.MethodPost && r.Method != http.MethodOptions {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
@@ -31,7 +35,7 @@ func registerHttpHandlers() {
 
 		p := player.NewPlayer(login)
 		if ok, errVal := validator.IsModelValid(p); !ok {
-			w.WriteHeader(http.StatusBadRequest)
+			w.WriteHeader(http.StatusOK)
 
 			respError := struct {
 				Error   string
