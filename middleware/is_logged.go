@@ -12,6 +12,10 @@ type IsLogged struct{}
 func (i *IsLogged) Execute(w http.ResponseWriter, r *http.Request) bool {
 	var h string
 
+	if r.Method == http.MethodOptions {
+		return true
+	}
+
 	if h = r.Header.Get(auth.HTTP_HEADER_UUID); h == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		log.Default().Println("IsLogged middleware - unauthorized#1")

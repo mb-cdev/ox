@@ -37,6 +37,13 @@ func registerHttpHandlers() {
 }
 
 func handleCreateRoom(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Access-Control-Allow-Origin", "*")
+	w.Header().Add("Access-Control-Allow-Headers", "*")
+
+	if r.Method == http.MethodOptions {
+		return
+	}
+
 	jsonEnc := json.NewEncoder(w)
 	h := r.Header.Get(auth.HTTP_HEADER_UUID)
 
