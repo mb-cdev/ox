@@ -34,6 +34,39 @@ func init() {
 
 func registerHttpHandlers() {
 	http.HandleFunc("/room/create", middleware.Middleware(handleCreateRoom, &middleware.IsLogged{}))
+	http.HandleFunc("/room/join", middleware.Middleware(handleJoinRoom, &middleware.IsLogged{}))
+}
+
+func handleJoinRoom(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Access-Control-Allow-Origin", "*")
+	w.Header().Add("Access-Control-Allow-Headers", "*")
+
+	if r.Method == http.MethodOptions {
+		return
+	}
+
+	room_uuid := r.FormValue("room_uuid")
+
+	ro, ok := room.RoomList.Rooms.Load(room_uuid)
+	_, okCast := ro.(*room.Room)
+	encoder := json.NewEncoder(w)
+
+	if ok && okCast {
+		resp := successResponse{
+			RoomUuid: room_uuid,
+			Header:   HTTP_HEADER_ROOM_UUID,
+			Success:  true,
+		}
+		encoder.Encode(resp)
+		return
+	}
+
+	resp := errorResponse{
+		Error:   "Room not found",
+		Success: false,
+	}
+	encoder.Encode(resp)
+
 }
 
 func handleCreateRoom(w http.ResponseWriter, r *http.Request) {
