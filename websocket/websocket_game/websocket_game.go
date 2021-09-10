@@ -45,14 +45,18 @@ func (w *WebsocketGameHandler) ServeConnection(in chan string, out chan string, 
 	subGame := w.connectedRoom.Subscribe(func(data string) {
 		out <- data
 	})
+	getParticipantsToken := game_protocol.NewToken("GETROOMPARTICIPANTS", nil)
 
 	defer func() {
 		w.connectedRoom.Chat.Unsubscribe(sub)
 		w.connectedRoom.Unsubscribe(subGame)
 		w.connectedRoom.DeleteParticipant(w.connectedPlayer)
+		getParticipantsToken.Execute(w.connectedPlayer, w.connectedRoom)
 	}()
 
 	w.connectedRoom.Chat.SendMessage(w.connectedPlayer, "CONNECTED!")
+	//force send player list
+	getParticipantsToken.Execute(w.connectedPlayer, w.connectedRoom)
 	for {
 		select {
 		case <-disconnect:

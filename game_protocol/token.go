@@ -17,6 +17,7 @@ func init() {
 		tokenMap["MESSAGE"] = reflect.TypeOf(MessageToken{})
 		tokenMap["NEWGAME"] = reflect.TypeOf(NewGameToken{})
 		tokenMap["MAKEMOVE"] = reflect.TypeOf(MakeMoveToken{})
+		tokenMap["GETROOMPARTICIPANTS"] = reflect.TypeOf(GetRoomParticipantsToken{})
 	})
 }
 
@@ -25,7 +26,7 @@ type Token interface {
 	SetArguments(args []string)
 }
 
-func newToken(name string, args []string) Token {
+func NewToken(name string, args []string) Token {
 	if t, ok := tokenMap[name]; ok {
 
 		tok := reflect.New(t).Interface().(Token)

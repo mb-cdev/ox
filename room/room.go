@@ -47,6 +47,13 @@ func NewRoom(owner *player.Player) (string, error) {
 	return uidS, nil
 }
 
+func (r *Room) GetParticipants() (participants map[string]*player.Player) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	return r.Participants
+}
+
 func (r *Room) AppendParticipant(p *player.Player) {
 	r.mu.Lock()
 	if _, ok := r.Participants[p.Name]; !ok {
@@ -57,9 +64,7 @@ func (r *Room) AppendParticipant(p *player.Player) {
 
 func (r *Room) DeleteParticipant(p *player.Player) {
 	r.mu.Lock()
-	if _, ok := r.Participants[p.Name]; !ok {
-		delete(r.Participants, p.Name)
-	}
+	delete(r.Participants, p.Name)
 	r.mu.Unlock()
 }
 

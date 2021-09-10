@@ -22,7 +22,7 @@ func ParseTokens(r io.Reader) []Token {
 		f := ExtractTokenOrArguments(s.Text(), line, &token, &arguments)
 
 		if !f {
-			t := newToken(token, arguments)
+			t := NewToken(token, arguments)
 			if t == nil {
 				continue
 			}
