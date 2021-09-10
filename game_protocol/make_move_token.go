@@ -28,6 +28,7 @@ func (m *MakeMoveToken) Execute(p *player.Player, r *room.Room) {
 
 	status := game.NewGameStatusResponse(r.CurrentGame)
 	resp.Data = status
+	resp.Operation = "GAMESTATUS"
 
 	r.Broadcast(resp)
 }

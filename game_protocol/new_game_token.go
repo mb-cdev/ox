@@ -13,6 +13,10 @@ type NewGameToken struct {
 }
 
 func (n *NewGameToken) Execute(p *player.Player, r *room.Room) {
+	if n.player2_login == "" {
+		n.player2_login = p.Name
+	}
+
 	err := r.NewGame(n.player1_login, n.player2_login)
 	if err != nil {
 		r.Broadcast(websocket_response.Response{
@@ -26,6 +30,10 @@ func (n *NewGameToken) Execute(p *player.Player, r *room.Room) {
 	r.Broadcast(websocket_response.Response{
 		Operation: "GAMESTATUS",
 		Data:      data,
+	})
+	r.Broadcast(websocket_response.Response{
+		Operation: "NEWGAME",
+		Data:      struct{ Started bool }{true},
 	})
 }
 
