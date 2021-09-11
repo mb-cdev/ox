@@ -5,6 +5,7 @@ type GameStatusResponse struct {
 	Finished bool
 	Winned   bool
 	Winner   string
+	TurnFor  string
 }
 
 func NewGameStatusResponse(g *Game) *GameStatusResponse {
@@ -12,6 +13,7 @@ func NewGameStatusResponse(g *Game) *GameStatusResponse {
 	s.GenerateBoard(g)
 	s.Finished = g.finished
 	s.Winned = g.Winned
+	s.TurnFor = g.players[g.turnForPlayerIndex].Name
 	s.GetWinner(g)
 
 	return s

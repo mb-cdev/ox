@@ -18,6 +18,7 @@ func init() {
 		tokenMap["NEWGAME"] = reflect.TypeOf(NewGameToken{})
 		tokenMap["MAKEMOVE"] = reflect.TypeOf(MakeMoveToken{})
 		tokenMap["GETROOMPARTICIPANTS"] = reflect.TypeOf(GetRoomParticipantsToken{})
+		tokenMap["GAMESTATUS"] = reflect.TypeOf(GameStatusToken{})
 	})
 }
 
